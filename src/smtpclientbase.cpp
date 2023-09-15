@@ -682,9 +682,9 @@ int SMTPClientBase::setMailRecipients(const Message &pMsg) {
     const int RECIPIENT_OK { 250 };
     std::vector<std::string> mailFormats;
     // Method 1, 2 and 3
+    mailFormats.push_back("MAIL FROM: <"s + pMsg.getFrom().getEmailAddress() + ">\r\n"s);
     mailFormats.push_back("MAIL FROM: <"s + pMsg.getFrom().getDisplayName() + " " + pMsg.getFrom().getEmailAddress() + ">\r\n"s);
     mailFormats.push_back("MAIL FROM: "s + pMsg.getFrom().getEmailAddress() + "\r\n"s);
-    mailFormats.push_back("MAIL FROM: <"s + pMsg.getFrom().getEmailAddress() + ">\r\n"s);
 
 
     int mail_from_ret_code { 0 };
