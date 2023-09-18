@@ -81,15 +81,16 @@ int OpportunisticSecureSMTPClient::establishConnectionWithServer() {
         if (client_initSecure_return_code != STATUS_CODE_REQUESTED_MAIL_ACTION_OK_OR_COMPLETED) {
             return client_initSecure_return_code;
         }
-        if (getCredentials() != nullptr) {
-            int client_auth_return_code = authenticateClient();
-            if (client_auth_return_code != STATUS_CODE_AUTHENTICATION_SUCCEEDED) {
-                return client_auth_return_code;
-            }
-        }
     } else {
+        setAuthenticationOptions(SMTPClientBase::extractAuthenticationOptions(getLastServerResponse()));
         addCommunicationLogItem("Info: STARTTLS is not an available option by the server, the communication will then remain unencrypted.");
         setKeepUsingBaseSendCommands(true);
+    }
+    if (getCredentials() != nullptr) {
+        int client_auth_return_code = authenticateClient();
+        if (client_auth_return_code != STATUS_CODE_AUTHENTICATION_SUCCEEDED) {
+            return client_auth_return_code;
+        }
     }
     return 0;
 }

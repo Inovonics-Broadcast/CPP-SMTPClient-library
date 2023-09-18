@@ -83,6 +83,14 @@ int SmtpClient::establishConnectionWithServer() {
         return client_init_return_code;
     }
 
+    setAuthenticationOptions(SMTPClientBase::extractAuthenticationOptions(getLastServerResponse()));
+    if (getCredentials() != nullptr) {
+        int client_auth_return_code = authenticateClient();
+        if (client_auth_return_code != STATUS_CODE_AUTHENTICATION_SUCCEEDED) {
+            return client_auth_return_code;
+        }
+    }
+    
     return 0;
 }
 
