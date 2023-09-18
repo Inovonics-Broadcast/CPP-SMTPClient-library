@@ -8,10 +8,6 @@ SmtpClient::SmtpClient(const std::string &pServerName, unsigned int pPort)
     : jed_utils::SmtpClient(pServerName.c_str(), pPort) {
 }
 
-SmtpClient::~SmtpClient() {
-    delete mCredential;
-}
-
 std::string SmtpClient::getServerName() const {
     return jed_utils::SmtpClient::getServerName();
 }

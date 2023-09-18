@@ -68,6 +68,7 @@ SMTPClientBase::~SMTPClientBase() {
     mLastServerResponse = nullptr;
     delete mAuthOptions;
     mAuthOptions = nullptr;
+    delete mCredential;
     mCredential = nullptr;
 }
 

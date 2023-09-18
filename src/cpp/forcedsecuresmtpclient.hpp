@@ -32,7 +32,7 @@ class CPP_FORCEDSECURESMTPCLIENT_API ForcedSecureSMTPClient : private jed_utils:
     ForcedSecureSMTPClient(const std::string &pServerName, unsigned int pPort);
 
     /** Destructor of the ForcedSecureSMTPClient. */
-    virtual ~ForcedSecureSMTPClient() override;
+    virtual ~ForcedSecureSMTPClient() = default;
 
     /** ForcedSecureSMTPClient copy constructor. */
     ForcedSecureSMTPClient(const ForcedSecureSMTPClient& other) = default;
