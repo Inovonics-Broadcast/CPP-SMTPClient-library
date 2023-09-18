@@ -894,7 +894,11 @@ std::string SMTPClientBase::createAttachmentsText(const std::vector<Attachment*>
             retval += "Content-Disposition: Inline; filename=\"" + std::string(item->getName()) + "\"\r\n";
         }
         retval += "Content-Transfer-Encoding: base64\r\n\r\n";
-        retval += std::string((item->getBase64EncodedFile() != nullptr ? item->getBase64EncodedFile() : ""));
+        auto b64 = item->getBase64EncodedFile();
+        if (b64 != nullptr) {
+            retval += std::string(b64);
+            delete [] b64;
+        }
     }
     retval += "\r\n--sep--";
     return retval;
