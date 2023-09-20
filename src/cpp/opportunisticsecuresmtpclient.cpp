@@ -75,3 +75,7 @@ jed_utils::ServerAuthOptions *OpportunisticSecureSMTPClient::extractAuthenticati
 int OpportunisticSecureSMTPClient::sendMail(const jed_utils::Message &pMsg) {
     return jed_utils::OpportunisticSecureSMTPClient::sendMail(pMsg);
 }
+
+void OpportunisticSecureSMTPClient::allowSelfSignedCertificates(bool pAllow) {
+    jed_utils::SecureSMTPClientBase::allowSelfSignedCertificates(pAllow);
+}

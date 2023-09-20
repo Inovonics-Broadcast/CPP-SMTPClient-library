@@ -44,6 +44,9 @@ class SECURESMTPCLIENTBASE_API SecureSMTPClientBase : public SMTPClientBase {
     /** SecureSMTPClientBase move assignment operator. */
     SecureSMTPClientBase& operator=(SecureSMTPClientBase&& other) noexcept;
 
+    /** Set to true to allow connection to servers with self signed certs. */
+    void allowSelfSignedCertificates(bool pAllow);
+
  protected:
     // Methods
     void cleanup() override;
@@ -61,6 +64,7 @@ class SECURESMTPCLIENTBASE_API SecureSMTPClientBase : public SMTPClientBase {
     BIO *mBIO;
     SSL_CTX *mCTX;
     SSL *mSSL;
+    bool mAllowSelfSignedCertificates = false;
 };
 }  // namespace jed_utils
 

@@ -75,3 +75,7 @@ jed_utils::ServerAuthOptions *ForcedSecureSMTPClient::extractAuthenticationOptio
 int ForcedSecureSMTPClient::sendMail(const jed_utils::Message &pMsg) {
     return jed_utils::ForcedSecureSMTPClient::sendMail(pMsg);
 }
+
+void ForcedSecureSMTPClient::allowSelfSignedCertificates(bool pAllow) {
+    jed_utils::SecureSMTPClientBase::allowSelfSignedCertificates(pAllow);
+}

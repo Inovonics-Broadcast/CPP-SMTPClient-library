@@ -133,6 +133,10 @@ void SecureSMTPClientBase::initializeSSLContext() {
     }
 }
 
+void SecureSMTPClientBase::allowSelfSignedCertificates(bool pAllow) {
+    mAllowSelfSignedCertificates = pAllow;
+}
+
 int SecureSMTPClientBase::startTLSNegotiation() {
     addCommunicationLogItem("<Start TLS negotiation>");
     initializeSSLContext();
@@ -217,12 +221,14 @@ int SecureSMTPClientBase::startTLSNegotiation() {
 
     /* Step 2: verify the result of chain verification */
     /* Verification performed according to RFC 4158    */
-    int res = static_cast<int>(SSL_get_verify_result(mSSL));
-    if (!(X509_V_OK == res)) {
-        addCommunicationLogItem(X509_verify_cert_error_string(res), "s");
-        cleanup();
-        return SSL_CLIENT_STARTTLS_VERIFY_RESULT_ERROR;
-    }
+        int res = static_cast<int>(SSL_get_verify_result(mSSL));
+        if (!(X509_V_OK == res)) {
+            addCommunicationLogItem(X509_verify_cert_error_string(res), "s");
+            if (mAllowSelfSignedCertificates == false) {
+                cleanup();
+                return SSL_CLIENT_STARTTLS_VERIFY_RESULT_ERROR;
+            }
+        }
 
     addCommunicationLogItem("TLS session ready!");
 

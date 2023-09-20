@@ -123,6 +123,12 @@ class CPP_OPPORTUNISTICSECURESMTPCLIENT_API OpportunisticSecureSMTPClient : priv
 
     int sendMail(const jed_utils::Message &pMsg);
 
+    /**
+     * @brief  Allow or not the use of self signed certificates.
+     * @param  pAllow  True to allow, false to disallow (default)
+    */
+    void allowSelfSignedCertificates(bool pAllow);
+
  protected:
     static int extractReturnCode(const std::string &pOutput);
     static jed_utils::ServerAuthOptions *extractAuthenticationOptions(const std::string &pEhloOutput);
