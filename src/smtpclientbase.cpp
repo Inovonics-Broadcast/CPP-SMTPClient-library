@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cerrno>
 #include <cstddef>
+#include <cstdlib>
 #include <cstring>
 #include <limits>
 #include <sstream>
@@ -57,6 +58,14 @@ SMTPClientBase::SMTPClientBase(const char *pServerName, unsigned int pPort)
     mServerName = new char[server_name_len + 1];
     strncpy(mServerName, pServerName, server_name_len);
     mServerName[server_name_len] = '\0';
+    // Create a random base64 encoded string to use as the separator
+    mSeperator = new char[16 + 1];
+    unsigned char random_bytes[12];
+    std::generate_n(random_bytes, 12, std::rand);
+    Base64 base64;
+    std::string encoded_bytes = base64.Encode(random_bytes, 12);
+    strncpy(mSeperator, encoded_bytes.c_str(), 16);
+    mSeperator[16] = '\0';
 }
 
 SMTPClientBase::~SMTPClientBase() {
@@ -70,6 +79,8 @@ SMTPClientBase::~SMTPClientBase() {
     mAuthOptions = nullptr;
     delete mCredential;
     mCredential = nullptr;
+    delete[] mSeperator;
+    mSeperator = nullptr;
 }
 
 // Copy constructor
@@ -84,12 +95,16 @@ SMTPClientBase::SMTPClientBase(const SMTPClientBase& other)
       mAuthOptions(other.mAuthOptions != nullptr ? new ServerAuthOptions(*other.mAuthOptions) : nullptr),
       mCredential(other.mCredential != nullptr ? new Credential(*other.mCredential) : nullptr),
       mSock(0),
+      mSeperator(new char[strlen(other.mSeperator) + 1]),
       mKeepUsingBaseSendCommands(other.mKeepUsingBaseSendCommands),
       sendCommandPtr(&SMTPClientBase::sendCommand),
       sendCommandWithFeedbackPtr(&SMTPClientBase::sendCommandWithFeedback) {
     size_t server_name_len = strlen(other.mServerName);
     strncpy(mServerName, other.mServerName, server_name_len);
     mServerName[server_name_len] = '\0';
+    size_t seperator_len = strlen(other.mSeperator);
+    strncpy(mSeperator, other.mSeperator, seperator_len);
+    mSeperator[seperator_len] = '\0';
     if (mCommunicationLog != nullptr) {
         size_t communication_log_len = strlen(other.mCommunicationLog);
         strncpy(mCommunicationLog, other.mCommunicationLog, communication_log_len);
@@ -139,6 +154,12 @@ SMTPClientBase& SMTPClientBase::operator=(const SMTPClientBase& other) {
         mCredential = other.mCredential != nullptr ? new Credential(*other.mCredential) : nullptr;
         mSock = 0;
         setKeepUsingBaseSendCommands(other.mKeepUsingBaseSendCommands);
+        // mSeperator
+        delete[] mSeperator;
+        size_t seperator_len = strlen(other.mSeperator);
+        mSeperator = new char[seperator_len + 1];
+        strncpy(mSeperator, other.mSeperator, seperator_len);
+        mSeperator[seperator_len] = '\0';
     }
     return *this;
 }
@@ -155,6 +176,7 @@ SMTPClientBase::SMTPClientBase(SMTPClientBase&& other) noexcept
       mAuthOptions(other.mAuthOptions),
       mCredential(other.mCredential),
       mSock(other.mSock),
+      mSeperator(other.mSeperator),
       mKeepUsingBaseSendCommands(other.mKeepUsingBaseSendCommands),
       sendCommandPtr(&SMTPClientBase::sendCommand),
       sendCommandWithFeedbackPtr(&SMTPClientBase::sendCommandWithFeedback) {
@@ -169,6 +191,7 @@ SMTPClientBase::SMTPClientBase(SMTPClientBase&& other) noexcept
     other.mCredential = nullptr;
     other.mSock = 0;
     other.mKeepUsingBaseSendCommands = false;
+    other.mSeperator = nullptr;
     setKeepUsingBaseSendCommands(mKeepUsingBaseSendCommands);
 }
 
@@ -180,6 +203,7 @@ SMTPClientBase& SMTPClientBase::operator=(SMTPClientBase&& other) noexcept {
         delete[] mLastServerResponse;
         delete mAuthOptions;
         delete mCredential;
+        delete[] mSeperator;
         // Copy the data pointer and its length from the source object.
         mServerName = other.mServerName;
         mPort = other.mPort;
@@ -193,6 +217,7 @@ SMTPClientBase& SMTPClientBase::operator=(SMTPClientBase&& other) noexcept {
         mSock = other.mSock;
         mKeepUsingBaseSendCommands = other.mKeepUsingBaseSendCommands;
         setKeepUsingBaseSendCommands(mKeepUsingBaseSendCommands);
+        mSeperator = other.mSeperator;
         // Release the data pointer from the source object so that
         // the destructor does not free the memory multiple times.
         other.mServerName = nullptr;
@@ -206,6 +231,7 @@ SMTPClientBase& SMTPClientBase::operator=(SMTPClientBase&& other) noexcept {
         other.mCredential = nullptr;
         other.mSock = 0;
         other.mKeepUsingBaseSendCommands = false;
+        other.mSeperator = nullptr;
     }
     return *this;
 }
@@ -779,7 +805,8 @@ int SMTPClientBase::setMailHeaders(const Message &pMsg) {
     }
 
     // Content-Type
-    std::string content_type { "Content-Type: multipart/related; boundary=sep\r\n\r\n" };
+    std::string content_type { "Content-Type: multipart/related; boundary=" };
+    content_type += std::string(mSeperator) + "\r\n\r\n";
     addCommunicationLogItem(content_type.c_str());
     int header_content_type_ret_code = (*this.*sendCommandPtr)(content_type.c_str(), CLIENT_SENDMAIL_HEADERCONTENTTYPE_ERROR);
     if (header_content_type_ret_code != 0) {
@@ -799,7 +826,7 @@ int SMTPClientBase::addMailHeader(const char *field, const char *value, int pErr
 int SMTPClientBase::setMailBody(const Message &pMsg) {
     // Body part
     std::ostringstream body_ss;
-    body_ss << "--sep\r\nContent-Type: " << pMsg.getMimeType() << "; charset=UTF-8\r\n\r\n" << pMsg.getBody() << "\r\n";
+    body_ss << "--" << mSeperator << "\r\nContent-Type: " << pMsg.getMimeType() << "; charset=UTF-8\r\n\r\n" << pMsg.getBody() << "\r\n";
     std::string body_real = body_ss.str();
     addCommunicationLogItem(body_real.c_str());
 
@@ -884,8 +911,9 @@ void SMTPClientBase::addCommunicationLogItem(const char *pItem, const char *pPre
 
 std::string SMTPClientBase::createAttachmentsText(const std::vector<Attachment*> &pAttachments) {
     std::string retval;
+    std::string sep { mSeperator };
     for (const auto &item : pAttachments) {
-        retval += "\r\n--sep\r\n";
+        retval += "\r\n--" + sep + "\r\n";
         retval += "Content-Type: " + std::string(item->getMimeType()) + "; file=\"" + std::string(item->getName()) + "\"\r\n";
         if (item->getContentId() != nullptr && std::string(item->getContentId()).size() > 0) {
             retval += "X-Attachment-Id: " + std::string(item->getContentId()) + "\r\n";
@@ -901,7 +929,7 @@ std::string SMTPClientBase::createAttachmentsText(const std::vector<Attachment*>
             delete [] b64;
         }
     }
-    retval += "\r\n--sep--";
+    retval += "\r\n--" + sep + "--";
     return retval;
 }
 
