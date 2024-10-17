@@ -477,6 +477,13 @@ int SMTPClientBase::initializeSessionPOSIX() {
         addCommunicationLogItem(strerror(errno));
         return SOCKET_INIT_SESSION_CREATION_ERROR;
     }
+    // Set receive timeout for blocking sockets
+    // to avoid blocking forever
+    tv.tv_sec = 0;  
+    tv.tv_usec = 100000; // 100 milliseconds
+    // Set the receive timeout on the socket
+    setsockopt(mSock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
+
     struct hostent *host = gethostbyname(getServerName());
     if (!host || host->h_length < 0) {
         return SOCKET_INIT_SESSION_GETHOSTBYNAME_ERROR;
