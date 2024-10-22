@@ -260,7 +260,7 @@ CONFIGURE_FILE(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/CMakeUninstall.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/cmake/CMakeUninstall.cmake"
     IMMEDIATE @ONLY)
-ADD_CUSTOM_TARGET(uninstall
+ADD_CUSTOM_TARGET(SMTPClient_uninstall
     "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake/CMakeUninstall.cmake")
 
 if(EXISTS ${PROJECT_PATH}/simpleclient AND IS_DIRECTORY ${PROJECT_PATH}/simpleclient)
