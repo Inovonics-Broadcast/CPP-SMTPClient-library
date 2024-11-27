@@ -796,9 +796,17 @@ int SMTPClientBase::setMailHeaders(const Message &pMsg) {
         size_t count = std::get<1>(item);
         const char *field = std::get<2>(item);
         if (list != nullptr) {
-            std::for_each(list, list + count, [this, &field](MessageAddress *address) {
-                    return addMailHeader(field, address->getEmailAddress(), CLIENT_SENDMAIL_HEADERTOANDCC_ERROR);
-                    });
+            std::string address_list;
+            for (int i = 0; i < count; i++) {
+                if (i > 0) {
+                    address_list += ", ";
+                }
+                address_list += list[i]->getEmailAddress();
+            }
+            int header_to_ret_code = addMailHeader(field, address_list.c_str(), CLIENT_SENDMAIL_HEADERTOANDCC_ERROR);
+            if (header_to_ret_code != 0) {
+              return header_to_ret_code;
+            }
         }
     }
 
