@@ -845,6 +845,7 @@ int SMTPClientBase::setMailBody(const Message &pMsg) {
         std::string attachments_text = createAttachmentsText(vect_attachment);
         body_real += attachments_text;
     }
+    body_real += "\r\n--" + std::string(mSeperator) + "--";
 
     const size_t CHUNK_MAXLENGTH = 512;
     if (body_real.length() > CHUNK_MAXLENGTH) {
@@ -936,7 +937,6 @@ std::string SMTPClientBase::createAttachmentsText(const std::vector<Attachment*>
             delete [] b64;
         }
     }
-    retval += "\r\n--" + sep + "--";
     return retval;
 }
 
