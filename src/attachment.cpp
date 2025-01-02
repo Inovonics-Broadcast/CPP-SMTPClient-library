@@ -5,6 +5,7 @@
 #include <limits>
 #include <sstream>
 #include <string>
+#include <cstdint>
 #include "stringutils.h"
 
 using namespace jed_utils;
