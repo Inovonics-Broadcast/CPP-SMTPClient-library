@@ -253,7 +253,9 @@ endif()
 
 install (TARGETS ${PROJECT_NAME} DESTINATION lib)
 install(DIRECTORY src/ DESTINATION include/smtpclient
-    FILES_MATCHING PATTERN "*.h")
+    FILES_MATCHING
+    PATTERN "*.h"
+    PATTERN "*.hpp")
 
 # Uninstall target
 CONFIGURE_FILE(
