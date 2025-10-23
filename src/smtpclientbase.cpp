@@ -71,8 +71,9 @@ SMTPClientBase::SMTPClientBase(const char *pServerName, unsigned int pPort)
     mServerName[server_name_len] = '\0';
     // Create a random string to use as the boundary separator
     // See RFC 1341 (MIME) section 7.2.1
-    static const char boundary_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'()+_,-./:=?";
-    for (int i = 0; i < sizeof(mSeparator) - 1; i++) {
+    static const char boundary_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    mSeparator[0] = '?';    // Ensure boundary can't exist in base64 content
+    for (int i = 1; i < sizeof(mSeparator) - 1; i++) {
         mSeparator[i] = boundary_chars[std::rand() % (sizeof(boundary_chars) - 1)];
     }
     mSeparator[sizeof(mSeparator) - 1] = '\0';
